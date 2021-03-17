@@ -29,4 +29,7 @@ public class PathtrainRestController {
         return pathEntity;
     }
 
+    public int getHighestPathId() {
+        return pathtrainService.getHighestPathId();
+    }
 }
