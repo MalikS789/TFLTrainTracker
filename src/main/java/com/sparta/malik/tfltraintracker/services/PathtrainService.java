@@ -48,4 +48,8 @@ public class PathtrainService {
         }
         return histories;
     }
+
+    public void newPath(PathtrainEntity pathtrainEntity) {
+
+    }
 }

@@ -1,5 +1,7 @@
 package com.sparta.malik.tfltraintracker.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.sparta.malik.tfltraintracker.entities.PathtrainEntity;
 import com.sparta.malik.tfltraintracker.entities.TrainsEntity;
 import com.sparta.malik.tfltraintracker.pojo.History;
 import com.sparta.malik.tfltraintracker.pojo.TrainPOJO;
@@ -11,7 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.io.IOException;
+import java.net.URL;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,38 +42,12 @@ public class TrainsRestController {
 
     @GetMapping("/")
     public String onLoad() {
-//        try {
-//            int highestID = pathtrainRestController.getHighestPathId();
-//            for (int i = 0; i < trainlines.length; i++) {
-//                listTrain[i] = objectMapper.readValue(new URL("https://api.tfl.gov.uk/line/" + trainlines[i] + "/arrivals"), new TypeReference<List<TrainPOJO>>() {
-//                });
-//                if (listTrain[i] != null) {
-//                    for (TrainPOJO trainPOJO : listTrain[i]) {
-//                        TrainsEntity trainsEntity = new TrainsEntity();
-//                        try {
-//                            trainsEntity.setTrainId(parseInt(i + "0" + trainPOJO.getVehicleId()));
-//                            highestID++;
-//                        } catch (Exception e) {
-//                            continue;
-//                        }
-//                        trainsEntity.setLineId(trainPOJO.getLineId());
-//                        newTrain(trainsEntity);
-//                        PathtrainEntity pathtrainEntity = new PathtrainEntity();
-//                        pathtrainEntity.setPathId(highestID + 1);
-//                        pathtrainEntity.setTrainId(trainsEntity.getTrainId());
-//                        pathtrainEntity.setPlatformName(trainPOJO.getPlatformName());
-//                        pathtrainEntity.setCurrentLocation(trainPOJO.getCurrentLocation());
-//                        pathtrainEntity.setDirection(trainPOJO.getDirection());
-//                        pathtrainEntity.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
-//                        pathtrainRestController.newPath(pathtrainEntity);
-//                    }
-//                }
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-        String generatedWebpage = "The database is up to date! <br/>\n" +
+        String generatedWebpage = "     <input type=\"button\" value=\"UPDATE DATABASE\" onClick=\"myFunction()\"/>\n" +
+                "     <script>\n" +
+                "       function myFunction() {\n" +
+                "         window.location.href=\"./update\";\n" +
+                "       }\n" +
+                "     </script> <br/>\n" +
                 "put <a href=\"./trains\">/trains</a> to see a JSON of all trains <br/>\n" +
                 "put <a href=\"./paths\">/paths</a> to see a json of all activity of all trains <br/>\n" +
                 "put e.g. <a href=\"./bakerloo/204\">/bakerloo/204</a> to see a map of the route the train with the id: 204 line took! <br/>\n" +
@@ -92,6 +71,41 @@ public class TrainsRestController {
                 "</script>";
 
         return generatedWebpage;
+    }
+
+    @GetMapping("/update")
+    public void update() {
+         try {
+            int highestID = pathtrainService.getHighestPathId();
+            for (int i = 0; i < trainlines.length; i++) {
+                listTrain[i] = objectMapper.readValue(new URL("https://api.tfl.gov.uk/line/" + trainlines[i] + "/arrivals"), new TypeReference<List<TrainPOJO>>() {
+                });
+                if (listTrain[i] != null) {
+                    for (TrainPOJO trainPOJO : listTrain[i]) {
+                        TrainsEntity trainsEntity = new TrainsEntity();
+                        try {
+                            trainsEntity.setTrainId(parseInt(i + "0" + trainPOJO.getVehicleId()));
+                            highestID++;
+                        } catch (Exception e) {
+                            continue;
+                        }
+                        trainsEntity.setLineId(trainPOJO.getLineId());
+                        newTrain(trainsEntity);
+                        PathtrainEntity pathtrainEntity = new PathtrainEntity();
+                        pathtrainEntity.setPathId(highestID + 1);
+                        pathtrainEntity.setTrainId(trainsEntity.getTrainId());
+                        pathtrainEntity.setPlatformName(trainPOJO.getPlatformName());
+                        pathtrainEntity.setCurrentLocation(trainPOJO.getCurrentLocation());
+                        pathtrainEntity.setDirection(trainPOJO.getDirection());
+                        pathtrainEntity.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
+                        pathtrainService.savePath(pathtrainEntity);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        onLoad();
     }
 
     @GetMapping("/{name}/{id}")
