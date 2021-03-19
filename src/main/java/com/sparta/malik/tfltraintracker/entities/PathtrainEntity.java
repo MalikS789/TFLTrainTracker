@@ -97,4 +97,5 @@ public class PathtrainEntity {
     public int hashCode() {
         return Objects.hash(pathId, trainId, platformName, currentLocation, direction, timestamp);
     }
+
 }
